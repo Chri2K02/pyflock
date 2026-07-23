@@ -1,5 +1,9 @@
 # pyflock
 
+[![CI](https://github.com/Chri2K02/pyflock/actions/workflows/ci.yml/badge.svg)](https://github.com/Chri2K02/pyflock/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 A fault-tolerant distributed job scheduler in Python. A control plane dispatches
 work to a horizontally-scalable pool of Docker worker nodes, with heartbeat-based
 health monitoring, automatic recovery of jobs orphaned by dead workers, retries
