@@ -1,0 +1,57 @@
+[project]
+name = "pyflock"
+version = "0.1.0"
+description = "A fault-tolerant distributed job scheduler with a Docker worker cluster, Redis queue, and Postgres state."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "ckearns" }]
+keywords = ["distributed-systems", "job-scheduler", "task-queue", "redis", "fastapi"]
+
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "redis>=5.0",
+    "sqlalchemy>=2.0",
+    "psycopg[binary]>=3.1",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "typer>=0.12",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "fakeredis>=2.21",
+    "ruff>=0.4",
+]
+
+[project.scripts]
+pyflock = "pyflock.cli.main:app"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
+markers = [
+    "integration: end-to-end tests exercising the full job lifecycle",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI dependency/parameter helpers are designed to be called in defaults.
+extend-immutable-calls = ["fastapi.Query", "fastapi.Path", "fastapi.Depends"]

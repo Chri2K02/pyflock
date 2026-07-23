@@ -1,0 +1,68 @@
+name: pyflock
+
+x-pyflock-env: &pyflock-env
+  PYFLOCK_REDIS_URL: redis://redis:6379/0
+  PYFLOCK_DATABASE_URL: postgresql+psycopg://pyflock:pyflock@postgres:5432/pyflock
+  PYFLOCK_WORKER_CONCURRENCY: "4"
+  PYFLOCK_HEARTBEAT_INTERVAL: "3"
+  PYFLOCK_HEARTBEAT_TTL: "10"
+  PYFLOCK_REAPER_INTERVAL: "5"
+
+services:
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pyflock
+      POSTGRES_PASSWORD: pyflock
+      POSTGRES_DB: pyflock
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pyflock"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    command: python -m pyflock.api
+    environment: *pyflock-env
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  scheduler:
+    build: .
+    command: python -m pyflock.scheduler
+    environment: *pyflock-env
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: python -m pyflock.worker
+    environment: *pyflock-env
+    # No container_name so you can scale: docker compose up --scale worker=5
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
